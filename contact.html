@@ -1,0 +1,1131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Contact Us - Swasthya Splash</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    :root {
+      --primary: #1a7f75;
+      --secondary: #c1106b;
+      --accent: #ff6b6b;
+      --light: #f8f9fa;
+      --dark: #2c3e50;
+      --gradient: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+      --gradient-reverse: linear-gradient(135deg, var(--secondary) 0%, var(--primary) 100%);
+    }
+    
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: linear-gradient(135deg, #f5f7fa 0%, #e4ecfb 100%);
+      min-height: 100vh;
+      padding: 20px;
+      color: var(--dark);
+      line-height: 1.6;
+      overflow-x: hidden;
+    }
+    
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    
+    /* Animated Background Elements */
+    .bg-elements {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: -1;
+      overflow: hidden;
+    }
+    
+    .bg-element {
+      position: absolute;
+      border-radius: 50%;
+      opacity: 0.1;
+      animation: floatElement 15s infinite linear;
+    }
+    
+    .bg-element:nth-child(1) {
+      width: 300px;
+      height: 300px;
+      background: var(--primary);
+      top: -150px;
+      left: -150px;
+      animation-delay: 0s;
+      animation-duration: 25s;
+    }
+    
+    .bg-element:nth-child(2) {
+      width: 200px;
+      height: 200px;
+      background: var(--secondary);
+      bottom: -100px;
+      right: 10%;
+      animation-delay: -5s;
+      animation-duration: 20s;
+    }
+    
+    .bg-element:nth-child(3) {
+      width: 150px;
+      height: 150px;
+      background: var(--accent);
+      top: 20%;
+      right: -75px;
+      animation-delay: -10s;
+    }
+    
+    @keyframes floatElement {
+      0% {
+        transform: translateY(0) rotate(0deg);
+      }
+      50% {
+        transform: translateY(-20px) rotate(180deg);
+      }
+      100% {
+        transform: translateY(0) rotate(360deg);
+      }
+    }
+    
+    /* Soft UI Navbar Styles */
+    .navbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 15px 30px;
+      background: rgba(255, 255, 255, 0.8);
+      backdrop-filter: blur(10px);
+      border-radius: 16px;
+      box-shadow: 0 8px 26px -4px rgba(20, 20, 20, 0.15),
+                  0 8px 9px -5px rgba(20, 20, 20, 0.06);
+      width: 100%;
+      margin: 20px auto;
+      position: sticky;
+      top: 20px;
+      z-index: 1000;
+      transition: all 0.3s ease;
+    }
+    
+    .navbar.scrolled {
+      padding: 10px 20px;
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    }
+    
+    .logo {
+      display: flex;
+      align-items: center;
+      font-weight: bold;
+      font-size: 1.8rem;
+      color: var(--primary);
+      text-decoration: none;
+      transition: all 0.3s ease;
+    }
+    
+    .logo:hover {
+      transform: scale(1.05);
+    }
+    
+    .logo i {
+      font-size: 2rem;
+      margin-right: 10px;
+      color: var(--secondary);
+      transition: all 0.3s ease;
+    }
+    
+    .nav-links {
+      display: flex;
+      gap: 5px;
+    }
+    
+    .nav-item {
+      color: var(--dark);
+      text-decoration: none;
+      padding: 12px 22px;
+      border-radius: 12px;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-weight: 500;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .nav-item:before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: var(--gradient);
+      z-index: -1;
+      transition: all 0.3s ease;
+      opacity: 0;
+    }
+    
+    .nav-item:hover:before {
+      opacity: 0.1;
+    }
+    
+    .nav-item:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+      color: var(--primary);
+    }
+    
+    .nav-item.active {
+      background: var(--gradient);
+      color: white;
+      font-weight: 600;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+    }
+    
+    .nav-item.active:after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 30%;
+      height: 3px;
+      background: white;
+      border-radius: 2px;
+    }
+    
+    /* Hamburger menu */
+    .hamburger {
+      display: none;
+      flex-direction: column;
+      cursor: pointer;
+      padding: 5px;
+      z-index: 100;
+    }
+    
+    .hamburger span {
+      height: 3px;
+      width: 25px;
+      background: var(--primary);
+      margin: 3px 0;
+      border-radius: 3px;
+      transition: 0.3s;
+    }
+
+    /* Header Section */
+    .header {
+      text-align: center;
+      padding: 60px 0 40px;
+      margin-top: -30px;
+      margin-bottom: -30px;
+    }
+    
+    .header-logo {
+      width: 250px;
+      margin: 0 auto 20px;
+      filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));
+    }
+    
+    .header h1 {
+      font-size: 2.8rem;
+      font-weight: 800;
+      color: var(--dark);
+      margin-bottom: 20px;
+      position: relative;
+      display: inline-block;
+    }
+    
+    .header h1:after {
+      content: '';
+      position: absolute;
+      bottom: -15px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 80px;
+      height: 4px;
+      background: var(--gradient);
+      border-radius: 2px;
+    }
+    
+    .header p {
+      max-width: 700px;
+      margin: 0 auto;
+      font-size: 1.2rem;
+      color: #555;
+    }
+    
+    /* Contact Section */
+    .contact-section {
+      background: white;
+      padding: 60px 40px;
+      border-radius: 20px;
+      margin: 40px 0;
+      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.08);
+    }
+    
+    .contact-section h2 {
+      font-size: 2.2rem;
+      margin-bottom: 20px;
+      color: var(--dark);
+      position: relative;
+      display: inline-block;
+    }
+    
+    .contact-section h2:after {
+      content: '';
+      position: absolute;
+      bottom: -10px;
+      left: 0;
+      width: 60px;
+      height: 4px;
+      background: var(--gradient);
+      border-radius: 2px;
+    }
+    
+    .contact-container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 40px;
+      margin-top: 40px;
+    }
+    
+    .contact-info {
+      flex: 1;
+      min-width: 300px;
+    }
+    
+    .contact-form {
+      flex: 1;
+      min-width: 300px;
+    }
+    
+    .info-card {
+      background: var(--light);
+      padding: 25px;
+      border-radius: 16px;
+      margin-bottom: 20px;
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: flex-start;
+      gap: 15px;
+    }
+    
+    .info-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+    }
+    
+    .info-icon {
+      font-size: 1.5rem;
+      color: var(--primary);
+      background: rgba(26, 127, 117, 0.1);
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    
+    .info-content h3 {
+      font-size: 1.2rem;
+      margin-bottom: 5px;
+      color: var(--dark);
+    }
+    
+    .info-content p {
+      color: #666;
+    }
+    
+    .info-content a {
+      color: #666;
+      text-decoration: none;
+      transition: all 0.3s ease;
+    }
+    
+    .info-content a:hover {
+      color: var(--primary);
+    }
+    
+    .form-group {
+      margin-bottom: 20px;
+    }
+    
+    .form-group label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 500;
+      color: var(--dark);
+    }
+    
+    .form-control {
+      width: 100%;
+      padding: 15px;
+      border: 1px solid #ddd;
+      border-radius: 12px;
+      font-family: 'Poppins', sans-serif;
+      font-size: 1rem;
+      transition: all 0.3s ease;
+      background: var(--light);
+    }
+    
+    .form-control:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(26, 127, 117, 0.1);
+    }
+    
+    textarea.form-control {
+      min-height: 150px;
+      resize: vertical;
+    }
+    
+    .submit-btn {
+      background: var(--gradient);
+      color: white;
+      border: none;
+      padding: 15px 30px;
+      border-radius: 50px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+    }
+    
+    .submit-btn:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+    }
+    
+    .map-container {
+      margin-top: 60px;
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+      height: 400px;
+    }
+    
+    .map-container iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
+    }
+    
+    /* FAQ Section */
+    .faq-section {
+      background: white;
+      padding: 60px 40px;
+      border-radius: 20px;
+      margin: 40px 0;
+      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.08);
+    }
+    
+    .faq-section h2 {
+      font-size: 2.2rem;
+      margin-bottom: 40px;
+      color: var(--dark);
+      position: relative;
+      display: inline-block;
+    }
+    
+    .faq-section h2:after {
+      content: '';
+      position: absolute;
+      bottom: -10px;
+      left: 0;
+      width: 60px;
+      height: 4px;
+      background: var(--gradient);
+      border-radius: 2px;
+    }
+    
+    .faq-container {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+    
+    .faq-item {
+      border-radius: 12px;
+      overflow: hidden;
+      border: 1px solid #eee;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+      transition: all 0.3s ease;
+    }
+    
+    .faq-item:hover {
+      box-shadow: 0 6px 18px rgba(0,0,0,0.1);
+    }
+    
+    .faq-question {
+      width: 100%;
+      text-align: left;
+      padding: 18px 20px;
+      font-size: 1.2rem;
+      font-weight: 600;
+      background: #fff;
+      border: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      color: #1a7f75;
+    }
+    
+    .faq-question i {
+      margin-right: 10px;
+      color: #c1106b;
+    }
+    
+    .faq-answer {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.4s ease, padding 0.3s ease;
+      background: #f8f9fa;
+      padding: 0 20px;
+    }
+    
+    .faq-answer p {
+      margin: 15px 0;
+      color: #555;
+    }
+    
+    .faq-item.active .faq-answer {
+      max-height: 200px;
+      padding: 15px 20px;
+    }
+    
+    .faq-icon {
+      font-weight: bold;
+      font-size: 1.5rem;
+      margin-left: auto;
+      transition: transform 0.3s ease;
+    }
+    
+    .faq-item.active .faq-icon {
+      transform: rotate(45deg);
+      color: #c1106b;
+    }
+    
+    /* Footer */
+    footer {
+      background: var(--dark);
+      color: white;
+      padding: 40px 20px;
+      border-radius: 20px;
+      margin-top: 60px;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    footer:before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 5px;
+      background: var(--gradient);
+    }
+    
+    .footer-content {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      gap: 40px;
+      padding: 0 40px;
+      position: relative;
+      z-index: 2;
+    }
+    
+    .footer-section {
+      flex: 1;
+      min-width: 250px;
+    }
+    
+    .footer-title {
+      font-size: 1.4rem;
+      margin-bottom: 20px;
+      color: #ffcb69;
+      position: relative;
+      display: inline-block;
+    }
+    
+    .footer-title:after {
+      content: '';
+      position: absolute;
+      bottom: -10px;
+      left: 0;
+      width: 40px;
+      height: 3px;
+      background: var(--gradient);
+      border-radius: 2px;
+    }
+    
+    .footer-links a {
+      display: block;
+      color: #ddd;
+      margin-bottom: 12px;
+      text-decoration: none;
+      transition: all 0.3s ease;
+      padding: 5px 0;
+      position: relative;
+    }
+    
+    .footer-links a:before {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 0;
+      height: 2px;
+      background: var(--gradient);
+      transition: all 0.3s ease;
+    }
+    
+    .footer-links a:hover {
+      color: #ffcb69;
+      transform: translateX(5px);
+    }
+    
+    .footer-links a:hover:before {
+      width: 30px;
+    }
+    
+    .social-icons {
+      display: flex;
+      gap: 15px;
+      margin-top: 20px;
+    }
+    
+    .social-icons a {
+      color: white;
+      font-size: 1.5rem;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.1);
+    }
+    
+    .social-icons a:hover {
+      color: #ffcb69;
+      transform: translateY(-5px);
+      background: rgba(255, 255, 255, 0.2);
+    }
+    
+    .footer-bottom {
+      text-align: center;
+      padding-top: 50px;
+      margin-top: 50px;
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+      position: relative;
+      z-index: 2;
+    }
+    
+    /* Chat Bot Icon */
+    .chatbot-icon {
+      position: fixed;
+      bottom: 30px;
+      right: 30px;
+      width: 60px;
+      height: 60px;
+      background: var(--gradient);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 1.5rem;
+      box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
+      cursor: pointer;
+      z-index: 999;
+      transition: all 0.3s ease;
+      animation: pulse 2s infinite;
+    }
+
+    
+    .chatbot-icon:hover {
+      transform: scale(1.1) rotate(5deg);
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+    }
+    
+    @keyframes pulse {
+      0% {
+        box-shadow: 0 0 0 0 rgba(26, 127, 117, 0.7);
+      }
+      70% {
+        box-shadow: 0 0 0 10px rgba(26, 127, 117, 0);
+      }
+      100% {
+        box-shadow: 0 0 0 0 rgba(26, 127, 117, 0);
+      }
+    }
+    
+    /* Success Message */
+    .success-message {
+      background: rgba(26, 127, 117, 0.1);
+      border-left: 4px solid var(--primary);
+      padding: 15px;
+      border-radius: 8px;
+      margin-top: 20px;
+      display: none;
+    }
+    
+    .success-message.show {
+      display: block;
+      animation: fadeIn 0.5s ease;
+    }
+    
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+    
+    /* Mobile menu styles */
+    @media (max-width: 992px) {
+      .navbar {
+        padding: 15px 20px;
+        margin-top: 5px;
+      }
+      
+      .nav-item {
+        padding: 10px 18px;
+        font-size: 0.95rem;
+      }
+    }
+    
+    @media (max-width: 768px) {
+      .navbar {
+        padding: 15px;
+      }
+      
+      .hamburger {
+        display: flex;
+      }
+      
+      .nav-links {
+        position: fixed;
+        top: 0;
+        right: -300px;
+        width: 300px;
+        height: 100vh;
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(10px);
+        flex-direction: column;
+        padding-top: 80px;
+        transition: 0.4s;
+        z-index: 99;
+        box-shadow: -5px 0 15px rgba(0, 0, 0, 0.1);
+        border-radius: 0;
+      }
+      
+      .nav-links.active {
+        right: 0;
+      }
+      
+      .nav-item {
+        width: 100%;
+        padding: 20px 30px;
+        border-radius: 0;
+        justify-content: flex-start;
+        color: var(--dark);
+      }
+      
+      .nav-item.active {
+        color: white;
+      }
+      
+      .nav-item.active:after {
+        left: 15px;
+        transform: translateX(0);
+        width: 5px;
+        height: 80%;
+        bottom: 10%;
+      }
+      
+      .header h1 {
+        font-size: 2.2rem;
+      }
+      
+      .contact-section, .faq-section {
+        padding: 40px 20px;
+      }
+      
+      .contact-section h2, .faq-section h2 {
+        font-size: 1.8rem;
+      }
+      
+      .chatbot-icon {
+        bottom: 20px;
+        right: 20px;
+        width: 50px;
+        height: 50px;
+        font-size: 1.2rem;
+      }
+    }
+    
+    @media (max-width: 480px) {
+      .logo {
+        font-size: 1.4rem;
+      }
+      
+      .logo i {
+        font-size: 1.6rem;
+      }
+      
+      .header h1 {
+        font-size: 1.8rem;
+      }
+      
+      .header p {
+        font-size: 1rem;
+      }
+    }
+      @media (max-width: 768px) {
+  .nav-links {
+    right: -300px;   /* already there */
+    display: flex;   /* keep flex */
+    visibility: hidden; /* new */
+    opacity: 0;       /* new */
+    transition: right 0.4s ease, opacity 0.3s ease;
+  }
+  
+  .nav-links.active {
+    right: 0;
+    visibility: visible; /* new */
+    opacity: 1;          /* new */
+  }
+  .profilesCard{
+        display: grid;
+        grid-template-columns: 1fr ;
+        gap: 20px;
+      
+  }
+}
+  </style>
+</head>
+<body>
+  <!-- Animated Background Elements -->
+  <div class="bg-elements">
+    <div class="bg-element"></div>
+    <div class="bg-element"></div>
+    <div class="bg-element"></div>
+  </div>
+  
+  <div class="container">
+    <!-- Soft UI Navbar -->
+    <nav class="navbar">
+      <a href="#" class="logo">
+        <img style="width: 200px; margin-top: -80px; margin-bottom: -80px;margin-left: -20px;" src="assets/swasthya logo side by side-Photoroom.png" alt="Swasthya Splash Logo">
+      </a>
+      
+      <div class="nav-links" id="navLinks">
+        <a href="home.html" class="nav-item">
+          <i class="fa-solid fa-house"></i>
+          <span>Home</span>
+        </a>
+        <a href="about.html" class="nav-item">
+          <i class="fa-solid fa-circle-info"></i>
+          <span>About</span>
+        </a>
+        <a href="chat.html" class="nav-item">
+          <i class="fa-solid fa-comments"></i>
+          <span>Chat</span>
+        </a>
+        <a href="resources.html" class="nav-item">
+          <i class="fa-solid fa-file"></i>
+          <span>Resources</span>
+        </a>
+        <a href="contact.html" class="nav-item active">
+          <i class="fa-solid fa-envelope"></i>
+          <span>Contact</span>
+        </a>
+      </div>
+      
+      <div class="hamburger" id="hamburger">
+        <span></span>
+        <span></span>
+        <span></span>
+      </div>
+    </nav>
+
+    <!-- Header Section -->
+    <section class="header">
+      <h1 style="display: flex; justify-content: center; align-items: center; ">Get In Touch <img style="width: 70px;" src="assets/swasthyaLogoMain-Photoroom.png" alt=""></h1>
+      <p>We'd love to hear from you! Whether you have questions, feedback, or need support, our team is here to help.</p>
+    </section>
+
+    <!-- Contact Section -->
+    <section class="contact-section">
+      <h2>Contact Us</h2>
+      <p>Reach out to us through any of the following methods or fill out the form and we'll get back to you as soon as possible.</p>
+      
+      <div class="contact-container">
+        <div class="contact-info">
+          <div class="info-card">
+            <div class="info-icon">
+              <i class="fas fa-map-marker-alt"></i>
+            </div>
+            <div class="info-content">
+              <h3>Our Location</h3>
+              <p>JIS College of Engineering, Kalyani, Nadia, West Bengal, India - 741235</p>
+            </div>
+          </div>
+          
+          <div class="info-card">
+            <div class="info-icon">
+              <i class="fas fa-phone"></i>
+            </div>
+            <div class="info-content">
+              <h3>Phone Number</h3>
+              <p><a href="tel:+918317838026">+91 8317838026</a></p>
+            </div>
+          </div>
+          
+          <div class="info-card">
+            <div class="info-icon">
+              <i class="fas fa-envelope"></i>
+            </div>
+            <div class="info-content">
+              <h3>Email Address</h3>
+              <p><a href="mailto:info@swasthyasplash.com">koustabchakraborty47@gmail.com</a></p>
+            </div>
+          </div>
+          
+          <div class="info-card">
+            <div class="info-icon">
+              <i class="fas fa-clock"></i>
+            </div>
+            <div class="info-content">
+              <h3>Working Hours</h3>
+              <p>Monday - Friday: 9AM - 6PM<br>Saturday: 10AM - 4PM</p>
+            </div>
+          </div>
+        </div>
+        
+        <div class="contact-form">
+          <form id="contactForm">
+            <div class="form-group">
+              <label for="name">Full Name</label>
+              <input type="text" id="name" class="form-control" placeholder="Enter your name" required>
+            </div>
+            
+            <div class="form-group">
+              <label for="email">Email Address</label>
+              <input type="email" id="email" class="form-control" placeholder="Enter your email" required>
+            </div>
+            
+            <div class="form-group">
+              <label for="subject">Subject</label>
+              <input type="text" id="subject" class="form-control" placeholder="What is this regarding?">
+            </div>
+            
+            <div class="form-group">
+              <label for="message">Message</label>
+              <textarea id="message" class="form-control" placeholder="Type your message here..." required></textarea>
+            </div>
+            
+            <button type="submit" class="submit-btn">
+              <i class="fas fa-paper-plane"></i> Send Message
+            </button>
+            
+            <div class="success-message" id="successMessage">
+              <i class="fas fa-check-circle"></i> Thank you for your message! We'll get back to you soon.
+            </div>
+          </form>
+        </div>
+      </div>
+      
+      <div class="map-container">
+        <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3662.762665642835!2d88.43421431497056!3d23.38767458476125!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x39f8ff1ef8b7f7f1%3A0x7c8b6c0f0b7c0b7c!2sJIS%20College%20of%20Engineering!5e0!3m2!1sen!2sin!4v1633600000000!5m2!1sen!2sin" allowfullscreen="" loading="lazy"></iframe>
+      </div>
+    </section>
+    
+    <!-- FAQ Section -->
+    <section class="faq-section">
+      <h2>Frequently Asked Questions</h2>
+      
+      <div class="faq-container">
+        <div class="faq-item">
+          <button class="faq-question">
+            <i class="fa-solid fa-question-circle"></i>
+            How quickly do you respond to inquiries?
+            <span class="faq-icon">+</span>
+          </button>
+          <div class="faq-answer">
+            <p>We typically respond to all inquiries within 24 hours during business days. For urgent matters, please call us directly.</p>
+          </div>
+        </div>
+        
+        <div class="faq-item">
+          <button class="faq-question">
+            <i class="fa-solid fa-question-circle"></i>
+            Do you offer technical support for the chatbot?
+            <span class="faq-icon">+</span>
+          </button>
+          <div class="faq-answer">
+            <p>Yes, we provide comprehensive technical support for our chatbot platform. Our support team is available during business hours to assist with any technical issues.</p>
+          </div>
+        </div>
+        
+        <div class="faq-item">
+          <button class="faq-question">
+            <i class="fa-solid fa-question-circle"></i>
+            Can I schedule a demo of your services?
+            <span class="faq-icon">+</span>
+          </button>
+          <div class="faq-answer">
+            <p>Absolutely! We'd be happy to schedule a demo at your convenience. Please contact us with your preferred date and time, and we'll arrange a session.</p>
+          </div>
+        </div>
+        
+        <div class="faq-item">
+          <button class="faq-question">
+            <i class="fa-solid fa-question-circle"></i>
+            Do you partner with healthcare organizations?
+            <span class="faq-icon">+</span>
+          </button>
+          <div class="faq-answer">
+            <p>Yes, we actively seek partnerships with healthcare organizations, NGOs, and community groups to expand our reach and impact. Please reach out to discuss collaboration opportunities.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+      <div class="footer-content">
+        <div class="footer-section">
+          <h3 class="footer-title">Swasthya</h3>
+          <p>Your AI-powered health assistant making healthcare information accessible to everyone, everywhere.</p>
+        </div>
+        
+        <div class="footer-section">
+          <h3 class="footer-title">Quick Links</h3>
+          <div class="footer-links">
+            <a href="home.html">Home</a>
+            <a href="about.html">About</a>
+            <a href="chat.html">Chat</a>
+            <a href="resources.html">Resources</a>
+            <a href="contact.html">Contact</a>
+          </div>
+        </div>
+        
+        <div class="footer-section">
+          <h3 class="footer-title">Contact Info</h3>
+          <p><i class="fas fa-map-marker-alt"></i> JISCE, Kalyani, Nadia</p>
+          <p><i class="fas fa-phone"></i> +91 8317838026</p>
+          <p><i class="fas fa-envelope"></i> koustabchakraborty47@gmail.com</p>
+          <div class="social-icons">
+            <!-- <a href="#"><i class="fab fa-facebook-f"></i></a>
+            <a href="#"><i class="fab fa-twitter"></i></a>
+            <a href="#"><i class="fab fa-instagram"></i></a>
+            <a href="#"><i class="fab fa-linkedin-in"></i></a> -->
+          </div>
+        </div>
+      </div>
+      
+      <div class="footer-bottom">
+        <p>&copy; 2025 Swasthya. All rights reserved. | <a href="#" style="color: #ffcb69;">Privacy Policy</a> | <a href="#" style="color: #ffcb69;">Terms of Service</a></p>
+      </div>
+    </footer>
+  </div>
+
+  <!-- Chat Bot Icon -->
+  <div class="chatbot-icon" id="chatbotIcon">
+    <i class="fa-solid fa-comment-medical"></i>
+  </div>
+
+  <script>
+    // Mobile menu toggle
+    const hamburger = document.getElementById('hamburger');
+    const navLinks = document.getElementById('navLinks');
+    const navbar = document.querySelector('.navbar');
+    
+    hamburger.addEventListener('click', () => {
+      navLinks.classList.toggle('active');
+      hamburger.classList.toggle('active');
+    });
+    
+    // Close menu when clicking on a link
+    document.querySelectorAll('.nav-item').forEach(item => {
+      item.addEventListener('click', () => {
+        navLinks.classList.remove('active');
+        hamburger.classList.remove('active');
+      });
+    });
+    
+    // Navbar scroll effect
+    window.addEventListener('scroll', () => {
+      if (window.scrollY > 50) {
+        navbar.classList.add('scrolled');
+      } else {
+        navbar.classList.remove('scrolled');
+      }
+    });
+    
+    // Chat bot icon click
+    document.getElementById('chatbotIcon').addEventListener('click', () => {
+      window.open('chat.html', '_self');
+    });
+
+    // FAQ functionality
+    document.querySelectorAll(".faq-question").forEach(button => {
+      button.addEventListener("click", () => {
+        const faqItem = button.parentElement;
+        faqItem.classList.toggle("active");
+      });
+    });
+    
+    // Form submission
+    document.getElementById('contactForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+      
+      // Here you would typically send the form data to a server
+      // For this example, we'll just show a success message
+      
+      const successMessage = document.getElementById('successMessage');
+      successMessage.classList.add('show');
+      
+      // Reset form
+      this.reset();
+      
+      // Hide success message after 5 seconds
+      setTimeout(() => {
+        successMessage.classList.remove('show');
+      }, 5000);
+    });
+    
+    // Page fade in effect
+    document.body.style.opacity = 0;
+    let opacity = 0;
+    const fadeIn = setInterval(() => {
+      if (opacity < 1) {
+        opacity += 0.02;
+        document.body.style.opacity = opacity;
+      } else {
+        clearInterval(fadeIn);
+      }
+    }, 30);
+  </script>
+</body>
+</html>
