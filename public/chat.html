@@ -1,0 +1,938 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Swasthya HealthBot — Combined</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    /* ---------- BASE ---------- */
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+    :root{
+      --primary:#1a7f75; --primary-light:#4caf95; --secondary:#c1106b;
+      --bg-start:#e4ecfb; --bg-end:#f5f7fa;
+      --text-dark:#2c3e50; --muted:#7f8c8d; --shadow:0 2px 10px rgba(0,0,0,0.08);
+      --radius:12px; --sidebar-width:280px;
+    }
+    html,body { height:100%; background:linear-gradient(135deg,var(--bg-start) 0%,var(--bg-end) 100%); color:var(--text-dark); }
+
+    .profile-btn{
+      background-color: var(--bg-start);
+      padding: 10px 12px;
+      border: none;
+      border-radius: 15px;
+    }
+    .profile-btn:hover{
+      background-color: var(--primary);
+      color: white;
+      transition: all 0.3s ease-in-out;
+    }
+
+    /* ---------- LAYOUT ---------- */
+    .container { display:flex; height:100vh; width:100%; position:relative; overflow:hidden; }
+    .sidebar { width:var(--sidebar-width); background:white; border-right:1px solid #eaeef2; display:flex; flex-direction:column; box-shadow:var(--shadow); z-index:120; transition: transform .25s ease, left .25s ease; }
+    .main { flex:1; display:flex; flex-direction:column; position:relative; }
+
+    /* ---------- SIDEBAR ---------- */
+    .sidebar-header { padding:18px; border-bottom:1px solid #f0f2f5; display:flex; gap:12px; align-items:center; }
+    .logo { width:44px; height:44px; border-radius:50%; background:var(--primary); color:white; display:flex; align-items:center; justify-content:center; font-size:18px; }
+    .new-chat-btn { margin-left:auto; padding:12px 15px; border-radius:10px; background:var(--primary); color:white; border:none; cursor:pointer; display:flex; gap:8px; align-items:center; font-size: 0.7rem; }
+    .new-chat-btn:hover{ background:var(--primary-light); }
+    .chat-history { padding:10px; overflow:auto; flex:1; }
+    .chat-item { padding:12px; border-radius:10px; margin-bottom:8px; cursor:pointer; position:relative; transition:background .15s; }
+    .chat-item:hover{ background:#f7fbff; }
+    .chat-item.active{ background:#eaf8f6; border-left:3px solid var(--primary); }
+    .chat-title { font-weight:600; margin-bottom:6px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; padding-right:70px; }
+    .chat-preview { font-size:0.9rem; color:var(--muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .chat-meta { font-size:0.75rem; color:#9aa3ad; margin-top:8px; }
+    .chat-actions { position:absolute; right:8px; top:8px; display:flex; gap:8px; }
+    .chat-action-btn { background:none; border:none; cursor:pointer; color:#999; padding:6px; border-radius:6px; display:none; }
+    .chat-item:hover .chat-action-btn { display:inline-flex; }
+    .sidebar-footer { padding:12px; border-top:1px solid #f0f2f5; display:flex; gap:8px; }
+
+    /* ---------- HEADER ---------- */
+    .chat-header { padding:14px 20px; background:linear-gradient(135deg,var(--primary) 0%, var(--secondary) 100%); color:white; display:flex; align-items:center; gap:12px; box-shadow:var(--shadow); position:relative; z-index:90; }
+    .menu-btn { display:none; background:rgba(255,255,255,0.12); border:none; color:white; border-radius:8px; padding:8px; cursor:pointer; }
+    .bot-info h2 { font-size:1.05rem; margin-bottom:2px; }
+    .bot-info p { font-size:0.82rem; opacity:0.9; }
+    .language-select { margin-left:auto; background:rgba(255,255,255,0.12); border-radius:20px; padding:6px 10px; color:white; border:none; }
+
+    /* ---------- CHAT AREA ---------- */
+    .chat-area { flex:1; overflow:auto; padding:20px; min-height:0; background-image:url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M11 18c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm48 25c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7z' fill='%23c3cfe2' fill-opacity='0.08'/%3E%3C/svg%3E"); }
+    .message { max-width:80%; margin-bottom:14px; display:flex; flex-direction:column; animation: fade .22s ease; }
+    @keyframes fade { from{opacity:0; transform:translateY(6px);} to{opacity:1; transform:none;} }
+    .user { align-items:flex-end; margin-left:auto; }
+    .bot { align-items:flex-start; }
+    .bubble { padding:12px 16px; border-radius:18px; box-shadow:0 1px 2px rgba(0,0,0,0.06); background:white; color:var(--text-dark); max-width:100%; }
+    .bubble.user { background:var(--primary); color:white; border-bottom-right-radius:6px; }
+    .meta { font-size:0.74rem; opacity:0.7; margin-top:6px; }
+
+    .quick-replies { display:flex; gap:10px; flex-wrap:wrap; margin-top:10px; }
+    .quick-btn { background:white; padding:8px 12px; border-radius:20px; border:1px solid #eee; cursor:pointer; }
+
+    /* ---------- INPUT ---------- */
+    .input-bar { padding:12px; background:white; border-top:1px solid #e9eef2; display:flex; gap:10px; align-items:center; z-index:100; }
+    .text-input { flex:1; padding:12px 14px; border-radius:26px; border:1px solid #e6ecef; outline:none; }
+    .send-btn { width:46px; height:46px; border-radius:50%; border:none; background:var(--primary); color:white; display:flex; align-items:center; justify-content:center; cursor:pointer; }
+    .send-btn:hover{
+      background:var(--primary-light);
+    }
+
+    /* ---------- TYPING ---------- */
+    .typing { display:flex; gap:6px; padding:10px 14px; border-radius:18px; background:white; align-items:center; box-shadow:0 1px 2px rgba(0,0,0,0.06); width:fit-content; margin-bottom:14px; }
+    .dot { width:8px; height:8px; border-radius:50%; background:#cfcfcf; animation: pulse 1.2s infinite ease-in-out; }
+    .dot:nth-child(2){ animation-delay:.15s } .dot:nth-child(3){ animation-delay:.28s }
+    @keyframes pulse{ 0%{transform:scale(.8); opacity:.6} 50%{transform:scale(1); opacity:1} 100%{transform:scale(.8); opacity:.6} }
+
+    /* ---------- MODALS ---------- */
+    .modal { position:fixed; inset:0; background:rgba(0,0,0,0.45); display:none; align-items:center; justify-content:center; z-index:1500; padding:16px; }
+    .modal.show{ display:flex; }
+    .modal-card { background:white; border-radius:12px; padding:20px; width:100%; max-width:520px; max-height:86vh; overflow:auto; box-shadow:0 6px 30px rgba(0,0,0,0.12); }
+
+    /* profile */
+    .profile-row { display:flex; gap:10px; margin-bottom:14px; }
+    .profile-row input, .profile-row select, .form-control { width:100%; padding:10px 12px; border-radius:8px; border:1px solid #e6ecef; }
+    .children-list { margin-top:10px; border-top:1px solid #f0f2f5; padding-top:12px; }
+
+    .progress-wrap { height:8px; background:#f0f3f4; border-radius:6px; overflow:hidden; margin-bottom:10px; }
+    .progress { height:100%; width:0%; background:linear-gradient(90deg,var(--primary),var(--primary-light)); transition:width .3s; }
+
+    /* summary modal small */
+    .summary-title { font-weight:600; margin-bottom:8px; }
+    .summary-body { color:var(--muted); margin-bottom:14px; }
+
+    /* overlay for mobile sidebar */
+    #overlay { position:fixed; inset:0; background:rgba(0,0,0,0.35); z-index:110; display:none; }
+    #overlay.show{ display:block; }
+
+    /* ---------- RESPONSIVE ---------- */
+    @media(max-width: 900px){
+      .sidebar{ position:fixed; left:-100%; top:0; height:100vh; z-index:200; width:var(--sidebar-width); }
+      .sidebar.open{ left:0; }
+      .menu-btn{ display:block; }
+      .chat-area { height: calc(100vh - 140px); padding-bottom:86px; }
+      .input-bar{ position:fixed; left:0; right:0; bottom:0; }
+    }
+
+    @media(max-width:480px){
+      .chat-title{ font-size:0.95rem; }
+      .chat-preview{ font-size:0.85rem; }
+      .logo { width:40px; height:40px; }
+    }
+    .backBtn{
+      background-color: var(--bg-start);
+      margin: 10px;
+      padding: 10px 12px;
+      border: none;
+      border-radius: 15px;
+      margin-right: auto;
+      cursor: pointer;
+      color: var(--text-dark);
+      margin-bottom: -8px;
+      margin-left: 15px;
+    }
+    .backBtn:hover{
+      background-color: var(--primary);
+      color: white;
+      transition: all 0.3s ease-in-out;
+    }
+
+    /* Speech controls */
+    .speech-controls {
+      display: flex;
+      gap: 8px;
+      margin-left: auto;
+    }
+    .tts-btn {
+      background: none;
+      border: none;
+      color: var(--muted);
+      cursor: pointer;
+      font-size: 14px;
+      padding: 4px 8px;
+      border-radius: 4px;
+    }
+    .tts-btn:hover {
+      background-color: rgba(0,0,0,0.05);
+    }
+    .tts-btn.active {
+      color: var(--primary);
+    }
+  </style>
+</head>
+<body>
+  <div id="overlay"></div>
+
+  <div class="container">
+    <!-- SIDEBAR -->
+  
+    <div class="sidebar" id="sidebar">
+         <button onclick="window.location.href = 'home.html'" class="backBtn"><i class="fa-solid fa-arrow-left"></i> back</button>
+      <div class="sidebar-header">
+        <!-- <div class="logo"></div>
+        <div style="font-weight:700;">Swasthya</div> -->
+        <button style="width: 100%; font-size: 0.9rem; text-align: center; display: flex;justify-content: center;align-items: center;" class="new-chat-btn" id="newChatBtn"><i class="fas fa-plus"></i> New Chat</button>
+      </div>
+
+      <div class="chat-history" id="chatHistory"></div>
+
+      <div style="display: flex; flex-direction: row; align-items: center; justify-content: center; gap: 20px;" class="sidebar-footer">
+        <button  class="profile-btn " id="profileBtn"><i class="fas fa-user"></i> Profile Settings</button>
+        <a href=""><button class="profile-btn"><i style="font-weight: bold;" class="fa-brands fa-whatsapp"></i> Chat</button></a>
+      </div>
+    </div>
+
+    <!-- MAIN -->
+    <div class="main">
+      <div class="chat-header">
+        <button class="menu-btn" id="menuBtn"><i class="fas fa-bars"></i></button>
+        <div class="bot-info">
+          <h2 style="display: flex; justify-content: center;align-items: center;"><img style="width: 35px; margin-right: 10px;" src="assets/swasthyaLOGOwhite-Photoroom.png" alt="">Swasthya HealthBot</h2>
+          <p style="margin-left: 10px;"><span style="color: rgb(223, 248, 186);font-weight:bold; animation: pulse 2s infinite;">Online •</span> AI Health Assistant</p>
+        </div>
+        <div style="display: flex; flex-direction: row; align-items: center;" class="speech-controls">
+          <img style="width: 20px;" src="assets/world.png" alt="" class="displayCountry">
+
+        <select id="languageSelect" class="language-select" title="Language">
+          <option value="en-US">English</option>
+          <option value="hi-IN">Hindi</option>
+          <option value="bn-IN">Bengali</option>
+          <option value="ta-IN">Tamil</option>
+        </select>
+        </div>
+      </div>
+
+      <div class="chat-area" id="chatArea">
+        <!-- messages appended here -->
+      </div>
+
+      <div class="input-bar" id="inputBar">
+        <input id="messageInput" class="text-input" placeholder="Type your message here..." autocomplete="off" />
+        <select style="display: none;" id="languageSelectInput">
+          <option value="en-US">English</option>
+          <option value="hi-IN">Hindi</option>
+          <option value="bn-IN">Bengali</option>
+          <option value="ta-IN">Tamil</option>
+        </select>
+        <button id="speakBtn" class="send-btn"><i class="fa-solid fa-microphone"></i></button>
+        <button id="sendBtn" class="send-btn"><i class="fas fa-paper-plane"></i></button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Profile Modal -->
+  <div class="modal" id="profileModal">
+    <div class="modal-card">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+        <h3>Your Health Profile</h3>
+        <button id="closeProfile" style="background:none;border:none;font-size:22px;cursor:pointer;">&times;</button>
+      </div>
+
+      <div class="progress-wrap"><div class="progress" id="profileProgress"></div></div>
+      <div id="profileProgressText" style="margin-bottom:12px;color:var(--muted);font-size:0.95rem;">Profile completeness: 0%</div>
+
+      <div style="display:flex; gap:10px; margin-bottom:12px;">
+        <input id="profileName" class="form-control" placeholder="Full name" />
+        <input id="profileAge" type="number" class="form-control" placeholder="Age" min="0" />
+      </div>
+
+      <div style="display:flex; gap:10px; margin-bottom:12px;">
+        <input id="profileLocation" class="form-control" placeholder="City or village" />
+        <select id="profileGender" class="form-control">
+          <option value="">Gender</option><option value="male">Male</option><option value="female">Female</option><option value="other">Other</option>
+        </select>
+      </div>
+
+      <div class="children-list">
+        <h4 style="margin-bottom:10px;">Children (if any)</h4>
+        <div id="childrenList"></div>
+        <div style="margin-top:10px;">
+          <button id="addChildBtn" class="add-child-btn" style="padding:10px;border-radius:10px;background:var(--primary);color:white;border:none;cursor:pointer;"><i class="fas fa-plus"></i> Add Child</button>
+        </div>
+      </div>
+
+      <div style="height:12px;"></div>
+      <div style="display:flex; gap:8px;">
+        <button id="saveProfileBtn" class="save-profile-btn" style="background:var(--primary);color:white;padding:12px;border-radius:10px;border:none;cursor:pointer;">Save Profile</button>
+        <button id="exportProfileBtn" style="padding:12px;border-radius:10px;border:1px solid #e6ecef;background:white;cursor:pointer;">Export</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Summary Modal -->
+  <div class="modal" id="summaryModal">
+    <div class="modal-card">
+      <div style="display:flex; justify-content:space-between; align-items:center;">
+        <div>
+          <div class="summary-title" id="summaryTitle"></div>
+          <div class="summary-body" id="summaryBody"></div>
+        </div>
+        <div>
+          <button id="openFromSummary" style="margin-right:10px;padding:8px 12px;border-radius:8px;background:var(--primary);color:white;border:none;cursor:pointer;">Open</button>
+          <button id="closeSummary" style="background:none;border:none;font-size:22px;cursor:pointer;">&times;</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+<script>
+/* ========= CONFIG ========= */
+const API_BASE_URL = 'http://localhost:3001'; // change if backend runs elsewhere
+const CHAT_ENDPOINT = `${API_BASE_URL}/api/chat`;
+
+/* ========= DOM ========= */
+const sidebar = document.getElementById('sidebar');
+const overlay = document.getElementById('overlay');
+const menuBtn = document.getElementById('menuBtn');
+const newChatBtn = document.getElementById('newChatBtn');
+const chatHistoryEl = document.getElementById('chatHistory');
+const chatArea = document.getElementById('chatArea');
+const messageInput = document.getElementById('messageInput');
+const sendBtn = document.getElementById('sendBtn');
+const languageSelect = document.getElementById('languageSelect');
+const languageSelectInput = document.getElementById('languageSelectInput');
+
+const profileBtn = document.getElementById('profileBtn');
+const profileModal = document.getElementById('profileModal');
+const closeProfile = document.getElementById('closeProfile');
+const profileName = document.getElementById('profileName');
+const profileAge = document.getElementById('profileAge');
+const profileLocation = document.getElementById('profileLocation');
+const profileGender = document.getElementById('profileGender');
+const profileProgress = document.getElementById('profileProgress');
+const profileProgressText = document.getElementById('profileProgressText');
+const childrenList = document.getElementById('childrenList');
+const addChildBtn = document.getElementById('addChildBtn');
+const saveProfileBtn = document.getElementById('saveProfileBtn');
+const exportProfileBtn = document.getElementById('exportProfileBtn');
+
+const summaryModal = document.getElementById('summaryModal');
+const summaryTitle = document.getElementById('summaryTitle');
+const summaryBody = document.getElementById('summaryBody');
+const closeSummary = document.getElementById('closeSummary');
+const openFromSummary = document.getElementById('openFromSummary');
+
+/* ========= STATE ========= */
+let chatManager;               // instance w/ profile + storage + send
+let currentMessages = [];      // messages of current open chat (array of {role,content,timestamp})
+let currentSessionId = null;   // id for current chat/session
+let recognition = null;
+
+/* ========= HELPERS ========= */
+function uid(prefix='s') { return prefix + '-' + Date.now() + '-' + Math.random().toString(36).slice(2,9); }
+function fmtTime(ts){ return ts ? new Date(ts).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}) : new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}); }
+function esc(s){ if(s==null) return ''; return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+/* ========= UserProfile ========= */
+class UserProfile {
+  constructor(){
+    this.profile = this.load() ;
+  }
+  load(){
+    try{ return JSON.parse(localStorage.getItem('swasthya_profile')) || { name:'', age:'', location:'', gender:'', children:[], language:'en', notifications:true }; }
+    catch(e){ return { name:'', age:'', location:'', gender:'', children:[], language:'en', notifications:true }; }
+  }
+  save(){ localStorage.setItem('swasthya_profile', JSON.stringify(this.profile)); this.updateProgressUI(); }
+  update(updates){ this.profile = {...this.profile, ...updates}; this.save(); }
+  addChild(name='', age=''){ this.profile.children.push({name, age}); this.save(); }
+  removeChild(i){ this.profile.children.splice(i,1); this.save(); }
+  updateProgressUI(){
+    let pct=0;
+    if(this.profile.name) pct += 25;
+    if(this.profile.age) pct += 25;
+    if(this.profile.location) pct += 25;
+    if(this.profile.gender) pct += 25;
+    profileProgress.style.width = pct + '%';
+    profileProgressText.textContent = `Profile completeness: ${pct}%`;
+  }
+  export(){ return { profile:this.profile, ts: new Date().toISOString() }; }
+}
+
+/* ========= ChatStorage =========
+   We'll keep full chat objects in a single 'swasthya_chats' array.
+   Each chat: { id, timestamp, title, messages:[{role,content,timestamp}], preview }
+*/
+class ChatStorage {
+  constructor(){
+    this.MAX = 50;
+    this.chats = this._load();
+  }
+  _load(){ try{ return JSON.parse(localStorage.getItem('swasthya_chats')) || []; }catch(e){ return []; } }
+  _save(){ localStorage.setItem('swasthya_chats', JSON.stringify(this.chats)); }
+  list(){ this.chats = this._load(); return this.chats; }
+  get(id){ return this.list().find(c => c.id === id) || null; }
+  saveChat(id, messages, summary=''){
+    const idx = this.chats.findIndex(c => c.id === id);
+    const chatObj = {
+      id,
+      timestamp: new Date().toISOString(),
+      title: summary || this._makeTitle(messages),
+      messages: messages.slice(),
+      preview: messages.length ? (messages.slice(-1)[0].content || '').slice(0,80) : 'New conversation'
+    };
+    if(idx >= 0) this.chats[idx] = chatObj;
+    else { this.chats.unshift(chatObj); if(this.chats.length > this.MAX) this.chats = this.chats.slice(0,this.MAX); }
+    this._save(); this.render();
+  }
+  deleteChat(id){ this.chats = this.chats.filter(c => c.id !== id); this._save(); this.render(); }
+  _makeTitle(messages){
+    const um = messages.filter(m => m.role === 'user');
+    if(um.length) return (um[0].content||'').slice(0,30) + ((um[0].content||'').length>30 ? '...' : '');
+    return 'Health Consultation';
+  }
+
+  render(){
+    this.chats = this._load();
+    chatHistoryEl.innerHTML = '';
+    if(this.chats.length === 0){ chatHistoryEl.innerHTML = '<div style="padding:18px;color:#9aa3ad;text-align:center;">No chats yet</div>'; return; }
+    this.chats.forEach(c => {
+      const div = document.createElement('div');
+      div.className = 'chat-item' + (c.id === currentSessionId ? ' active' : '');
+      div.dataset.id = c.id;
+      div.innerHTML = `
+        <div class="chat-title">${esc(c.title)}</div>
+        <div class="chat-preview">${esc(c.preview)}</div>
+        <div class="chat-meta">${timeAgo(c.timestamp)}</div>
+        <div class="chat-actions">
+          <button class="chat-action-btn" title="Summary" data-id="${c.id}" data-action="summary"><i class="fas fa-info-circle"></i></button>
+          <button class="chat-action-btn" title="Delete" data-id="${c.id}" data-action="delete"><i class="fas fa-trash"></i></button>
+        </div>
+      `;
+      // click to open chat
+      div.addEventListener('click', (e)=>{ if(e.target.closest('.chat-action-btn')) return; loadChat(c.id); });
+      // action handlers
+      const summaryBtn = div.querySelector('[data-action="summary"]');
+      const deleteBtn = div.querySelector('[data-action="delete"]');
+      summaryBtn && summaryBtn.addEventListener('click', (ev)=>{ ev.stopPropagation(); showSummary(c.id); });
+      deleteBtn && deleteBtn.addEventListener('click', (ev)=>{ ev.stopPropagation(); if(confirm('Delete this chat?')){ this.deleteChat(c.id); if(currentSessionId === c.id) startNewChat(); } });
+      chatHistoryEl.appendChild(div);
+    });
+  }
+}
+
+/* ========= ChatManager — backend integration ========= */
+class ChatManager {
+  constructor(){
+    this.userProfile = new UserProfile();
+    this.storage = new ChatStorage();
+    this.projectId = 'swasthya-bot-cigc';
+  }
+
+  // Extract profile-like info locally from user message (age/location)
+  extractProfileFromText(text){
+    let info = {};
+    // age
+    const ageMatch = text.match(/\b(\d{1,2})\s*(years|yrs|y)?\b/i);
+    if(ageMatch && !this.userProfile.profile.age) info.age = parseInt(ageMatch[1]);
+    // simple location patterns
+    const locMatch = text.match(/\b(?:in|from|at)\s+([A-Za-z\s]{2,30})/i);
+    if(locMatch && !this.userProfile.profile.location) info.location = locMatch[1].trim();
+    return info;
+  }
+
+  async sendToBackend(message, sessionId, language){
+    // Build payload
+    const payload = {
+      message,
+      sessionId,
+      projectId: this.projectId,
+      userContext: {...this.userProfile.profile, language}
+    };
+
+    const controller = new AbortController();
+    const timeoutId = setTimeout(()=> controller.abort(), 25000);
+
+    try {
+      const resp = await fetch(CHAT_ENDPOINT, {
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body: JSON.stringify(payload),
+        signal: controller.signal
+      });
+      clearTimeout(timeoutId);
+      if(!resp.ok) throw new Error('Network response not ok: ' + resp.status);
+      const data = await resp.json();
+      if(data.userContext){ // server can return an updated userContext
+        this.userProfile.update(data.userContext);
+      }
+      return data;
+    } catch(err){
+      clearTimeout(timeoutId);
+      throw err;
+    }
+  }
+}
+
+/* ========= UTILS ========= */
+function timeAgo(iso){
+  try{
+    const dt = new Date(iso);
+    const diff = Math.floor((Date.now() - dt)/ (1000*60*60*24));
+    if(diff === 0) return 'Today';
+    if(diff === 1) return 'Yesterday';
+    if(diff < 7) return `${diff} days ago`;
+    return dt.toLocaleDateString();
+  }catch(e){ return ''; }
+}
+
+/* ========= UI METHODS ========= */
+function openSidebar(){ 
+  sidebar.classList.add('open'); 
+  overlay.classList.add('show'); 
+  document.getElementById('overlay').classList.add('show'); 
+}
+
+function closeSidebar(){ 
+  sidebar.classList.remove('open'); 
+  overlay.classList.remove('show'); 
+  document.getElementById('overlay').classList.remove('show'); 
+}
+
+menuBtn.addEventListener('click', ()=>{ if(sidebar.classList.contains('open')) closeSidebar(); else openSidebar(); });
+overlay.addEventListener('click', ()=>{ closeSidebar(); });
+
+newChatBtn.addEventListener('click', ()=> startNewChat());
+profileBtn.addEventListener('click', ()=> openProfileModal());
+closeProfile.addEventListener('click', ()=> closeProfileModal());
+addChildBtn.addEventListener('click', ()=> addChildField());
+saveProfileBtn.addEventListener('click', ()=> saveProfile());
+exportProfileBtn.addEventListener('click', ()=> {
+  const exported = chatManager.userProfile.export();
+  const blob = new Blob([JSON.stringify(exported, null, 2)], {type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href = url; a.download = 'profile.json'; a.click(); URL.revokeObjectURL(url);
+});
+
+closeSummary.addEventListener('click', ()=> hideSummary());
+openFromSummary.addEventListener('click', ()=> {
+  const id = openFromSummary.dataset.id;
+  if(id) loadChat(id);
+  hideSummary();
+});
+
+/* keyboard enter send */
+messageInput.addEventListener('keypress', (e)=>{ if(e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); } });
+sendBtn.addEventListener('click', sendMessage);
+
+/* language select */
+languageSelect.addEventListener('change', ()=> {
+  chatManager.userProfile.update({ language: languageSelect.value });
+  languageSelectInput.value = languageSelect.value;
+});
+
+languageSelectInput.addEventListener('change', ()=> {
+  chatManager.userProfile.update({ language: languageSelectInput.value });
+  languageSelect.value = languageSelectInput.value;
+});
+
+/* Save chat on page unload */
+window.addEventListener('beforeunload', ()=> {
+  if(currentSessionId && currentMessages.length > 0) chatManager.storage.saveChat(currentSessionId, currentMessages);
+  localStorage.setItem('swasthya_last_chat', currentSessionId || '');
+});
+
+/* ========= SPEECH RECOGNITION ========= */
+function setupSpeechRecognition() {
+  if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    recognition = new SpeechRecognition();
+    recognition.continuous = false;
+    recognition.interimResults = false;
+    
+    recognition.onstart = () => {
+      speakBtn.innerHTML = '<i class="fas fa-circle" style="color:#e74c3c"></i>';
+      speakBtn.title = 'Listening...';
+    };
+    
+    recognition.onresult = (event) => {
+      const transcript = event.results[0][0].transcript;
+      messageInput.value = transcript;
+      speakBtn.innerHTML = '<i class="fa-solid fa-microphone"></i>';
+      speakBtn.title = 'Click to speak';
+      
+      // Auto-send if we have a valid transcript
+      if (transcript.trim().length > 2) {
+        sendMessage();
+      }
+    };
+    
+    recognition.onerror = (event) => {
+      console.error('Speech recognition error:', event.error);
+      speakBtn.innerHTML = '<i class="fa-solid fa-microphone"></i>';
+      speakBtn.title = 'Click to speak';
+      
+      if (event.error === 'not-allowed') {
+        alert('Microphone access is blocked. Please allow microphone access in your browser settings.');
+      }
+    };
+    
+    recognition.onend = () => {
+      speakBtn.innerHTML = '<i class="fa-solid fa-microphone"></i>';
+      speakBtn.title = 'Click to speak';
+    };
+    
+  } else {
+    speakBtn.disabled = true;
+    speakBtn.title = "Speech Recognition not supported";
+  }
+}
+
+function startSpeechRecognition() {
+  if (!recognition) {
+    setupSpeechRecognition();
+  }
+  
+  if (recognition) {
+    recognition.lang = languageSelectInput.value;
+    try {
+      recognition.start();
+    } catch (error) {
+      console.error('Speech recognition start error:', error);
+    }
+  }
+}
+
+/* ========= CORE FLOW ========= */
+
+// Initialize
+function init(){
+  chatManager = new ChatManager();
+  chatManager.storage.render();
+  chatManager.userProfile.updateProgressUI && chatManager.userProfile.updateProgressUI(); // ensure UI shows progress
+  
+  // Set language selects to match profile
+  if (chatManager.userProfile.profile.language) {
+    languageSelect.value = chatManager.userProfile.profile.language;
+    languageSelectInput.value = chatManager.userProfile.profile.language;
+  }
+  
+  // Setup speech recognition
+  setupSpeechRecognition();
+  
+  // Try to open last chat
+  const last = localStorage.getItem('swasthya_last_chat');
+  if(last){ const item = chatManager.storage.get(last); if(item) return loadChat(last); }
+  // else open latest if exists
+  const all = chatManager.storage.list();
+  if(all && all.length) return loadChat(all[0].id);
+  // else new chat
+  startNewChat();
+}
+
+/* startNewChat */
+function startNewChat(){
+  if(currentSessionId && currentMessages.length > 0) {
+    chatManager.storage.saveChat(currentSessionId, currentMessages);
+  }
+  currentSessionId = uid('session');
+  currentMessages = [];
+  renderWelcome();
+  chatManager.storage.render();
+  localStorage.setItem('swasthya_last_chat', currentSessionId);
+  closeSidebar();
+}
+
+/* render welcome */
+function renderWelcome(){
+  const lang = chatManager.userProfile.profile.language || 'en-US';
+  const messages = {
+    'en-US': {
+      title: 'Welcome to Swasthya HealthBot! 👋',
+      desc: "I'm here to provide accurate health information. How can I help you today?",
+      buttons: [
+        {q:'What are the symptoms of dengue?', label:'Symptoms'},
+        {q:'How can I prevent malaria?', label:'Prevention'},
+        {q:'What vaccines does a newborn need?', label:'Vaccination'},
+        {q:'Are there any disease outbreaks in my area?', label:'Outbreaks'}
+      ]
+    },
+    'hi-IN': {
+      title: 'स्वस्थ्य हेल्थबॉट में आपका स्वागत है! 👋',
+      desc: 'मैं यहां सटीक स्वास्थ्य जानकारी देने के लिए हूँ। मैं आपकी कैसे मदद कर सकता हूँ?',
+      buttons: [
+        {q:'डेंगू के लक्षण क्या हैं?', label:'लक्षण'},
+        {q:'मलेरिया से कैसे बचें?', label:'रोकथाम'},
+        {q:'नवजात को कौन-से टीके चाहिए?', label:'टीकाकरण'},
+        {q:'क्या मेरे क्षेत्र में कोई बीमारी फैल रही है?', label:'प्रकोप'}
+      ]
+    },
+    'bn-IN': {
+      title: 'স্বাস্থ্য হেলথবট-এ স্বাগতম! 👋',
+      desc: 'আমি সঠিক স্বাস্থ্য তথ্য দেওয়ার জন্য এখানে আছি। আজ আমি কীভাবে সাহায্য করতে পারি?',
+      buttons: [
+        {q:'ডেঙ্গুর উপসর্গগুলি কী কী?', label:'উপসর্গ'},
+        {q:'ম্যালেরিয়া থেকে কিভাবে রক্ষা পাব?', label:'প্রতিরোধ'},
+        {q:'নবজাতকের জন্য কোন টিকা প্রয়োজন?', label:'টীকাকরণ'},
+        {q:'আমার এলাকায় কোনো রোগের প্রাদুর্ভাব আছে কি?', label:'প্রাদুর্ভাব'}
+      ]
+    },
+    'ta-IN': {
+      title: 'Swasthya ஹெல்த்போட்டுக்கு வரவேற்கிறோம்! 👋',
+      desc: 'நான் சரியான சுகாதார தகவலை வழங்க இங்கு உள்ளேன். இன்று நான் உங்களுக்கு எப்படி உதவலாம்?',
+      buttons: [
+        {q:'டெங்குவின் அறிகுறிகள் என்ன?', label:'அறிகுறிகள்'},
+        {q:'மலேரியாவிலிருந்து எப்படி காப்பாற்றுவது?', label:'தடுக்கல்'},
+        {q:'புதிதாக பிறந்த குழந்தைக்கு எந்த தடுப்பூசிகள் தேவை?', label:'முதுகூறு'},
+        {q:'என் பகுதியில் எந்த நோய்களும் பரவுகிறதா?', label:'பரவல்'}
+      ]
+    }
+  };
+
+  const msg = messages[lang] || messages['en-US'];
+
+  chatArea.innerHTML = '';
+  const welcome = document.createElement('div');
+  welcome.className = 'welcome-card';
+  welcome.innerHTML = `
+    <div class="bubble" style="background:white;border-radius:12px;padding:18px;max-width:720px;">
+      <h3 style="color:var(--primary);margin-bottom:8px">${msg.title}</h3>
+      <p style="color:var(--muted);margin-bottom:12px">${msg.desc}</p>
+      <div style="display: block" class="quick-replies">
+        ${msg.buttons.map(b => `<button class="quick-btn" data-q="${b.q}">${b.label}</button>`).join('')}
+      </div>
+    </div>
+  `;
+  chatArea.appendChild(welcome);
+
+  welcome.querySelectorAll('.quick-btn').forEach(b => b.addEventListener('click', ()=> {
+    messageInput.value = b.dataset.q; sendMessage();
+  }));
+
+  scrollToBottom();
+}
+
+/* add message UI */
+function appendMessage(msg, saveToHistory=true){
+  // msg: { role:'user'|'bot', content:'', timestamp:'' }
+  const el = document.createElement('div');
+  el.className = 'message ' + (msg.role === 'user' ? 'user' : 'bot');
+  
+  const bubble = document.createElement('div');
+  bubble.className = 'bubble ' + (msg.role === 'user' ? 'user' : '');
+  // allow minimal HTML if returned from backend; otherwise escape
+  if(/<[a-z][\s\S]*>/i.test(msg.content)) bubble.innerHTML = msg.content;
+  else bubble.textContent = msg.content;
+  el.appendChild(bubble);
+  const meta = document.createElement('div');
+  meta.className = 'meta';
+  meta.textContent = fmtTime(msg.timestamp);
+  el.appendChild(meta);
+  chatArea.appendChild(el);
+  scrollToBottom();
+  if(saveToHistory){ chatManager.storage.saveChat(currentSessionId, currentMessages); localStorage.setItem('swasthya_last_chat', currentSessionId); }
+}
+
+/* typing indicator */
+function showTyping(){ if(document.getElementById('typing-ind')) return; const t = document.createElement('div'); t.id='typing-ind'; t.className='typing'; t.innerHTML = '<div class="dot"></div><div class="dot"></div><div class="dot"></div>'; chatArea.appendChild(t); scrollToBottom(); }
+function hideTyping(){ const t = document.getElementById('typing-ind'); if(t) t.remove(); }
+
+/* sendMessage flow (backend) */
+async function sendMessage(){
+  const raw = messageInput.value.trim();
+  if(!raw) return;
+  // push user message locally
+  const userMsg = { role:'user', content: raw, timestamp: new Date().toISOString() };
+  currentMessages.push(userMsg);
+  appendMessage(userMsg);
+  messageInput.value = '';
+  // update local profile from message (age/location heuristics)
+  const hints = chatManager.extractProfileFromText(raw);
+  if(Object.keys(hints).length) chatManager.userProfile.update(hints);
+
+  // show typing
+  showTyping();
+
+  try {
+    const data = await chatManager.sendToBackend(raw, currentSessionId, languageSelect.value);
+    hideTyping();
+
+    if(data.requiresProfileUpdate){
+      // backend wants profile info -> show question
+      const botText = data.response || 'Could you share more details for a personalized answer?';
+      const botMsg = { role:'bot', content: botText, timestamp: new Date().toISOString() };
+      currentMessages.push(botMsg);
+      appendMessage(botMsg);
+      // do not auto-save until profile updated; but still save chat state
+      chatManager.storage.saveChat(currentSessionId, currentMessages);
+      return;
+    }
+
+    // regular response (could be text or HTML)
+    const botText = data.response || 'I could not find an answer. Please try again.';
+    const botMsg = { role:'bot', content: botText, timestamp: new Date().toISOString() };
+    currentMessages.push(botMsg);
+    appendMessage(botMsg);
+
+    // if backend returned userContext, update profile
+    if(data.userContext){
+      chatManager.userProfile.update(data.userContext);
+      // optional: show acknowledgment
+      const ack = generateProfileAck(data.userContext);
+      if(ack){
+        currentMessages.push({ role:'bot', content: ack, timestamp: new Date().toISOString() });
+        appendMessage({ role:'bot', content: ack, timestamp: new Date().toISOString() }, false);
+      }
+    }
+
+    // save chat
+    chatManager.storage.saveChat(currentSessionId, currentMessages);
+  } catch (err){
+    hideTyping();
+    console.error('Chat error', err);
+    const errMsg = { role:'bot', content: 'Sorry — network error. Please try again.', timestamp: new Date().toISOString() };
+    currentMessages.push(errMsg);
+    appendMessage(errMsg);
+    chatManager.storage.saveChat(currentSessionId, currentMessages);
+  }
+}
+
+/* generate profile acknowledgment (client-side mimic of server behaviour) */
+function generateProfileAck(newCtx){
+  const parts = [];
+  const old = chatManager.userProfile.profile || {};
+  if(newCtx.age && newCtx.age !== old.age) parts.push(`I've noted your age as ${newCtx.age}.`);
+  if(newCtx.location && newCtx.location !== old.location) parts.push(`I'll remember you're from ${newCtx.location}.`);
+  if(newCtx.children && newCtx.children.length && (!old.children || old.children.length < newCtx.children.length)) {
+    const list = newCtx.children.map(c => `${c.name} (${c.age})`).join(', ');
+    parts.push(`Got your children: ${list}.`);
+  }
+  return parts.join(' ');
+}
+
+/* loadChat: save current chat (if needed) and open requested */
+function loadChat(id){
+  if(!id) return;
+  // save current
+  if(currentSessionId && currentSessionId !== id && currentMessages.length > 0){
+    chatManager.storage.saveChat(currentSessionId, currentMessages);
+  }
+  const chosen = chatManager.storage.get(id);
+  if(!chosen) return;
+  currentSessionId = id;
+  currentMessages = chosen.messages ? chosen.messages.slice() : [];
+  chatArea.innerHTML = '';
+  if(currentMessages.length === 0) renderWelcome();
+  else currentMessages.forEach(m => appendMessage(m, false));
+  chatManager.storage.render();
+  localStorage.setItem('swasthya_last_chat', currentSessionId);
+  closeSidebar();
+}
+
+/* show summary modal */
+function showSummary(chatId){
+  const chat = chatManager.storage.get(chatId);
+  if(!chat) return;
+  summaryTitle.textContent = chat.title || 'Chat summary';
+  // make a short summary: first 2 messages or preview
+  let body = chat.preview || '';
+  if(!body && chat.messages && chat.messages.length){
+    const firstUser = chat.messages.find(m => m.role === 'user');
+    if(firstUser) body = firstUser.content.slice(0,240);
+  }
+  summaryBody.textContent = body || 'No summary available';
+  openFromSummary.dataset.id = chatId;
+  summaryModal.classList.add('show');
+}
+
+/* hide summary */
+function hideSummary(){ summaryModal.classList.remove('show'); }
+
+/* delete chat wrapper */
+function deleteChatById(id){
+  if(!confirm('Delete this chat? This action cannot be undone.')) return;
+  chatManager.storage.deleteChat(id);
+  if(currentSessionId === id) startNewChat();
+}
+
+/* ========= PROFILE Modal logic ========= */
+function openProfileModal(){
+  const p = chatManager.userProfile.profile;
+  profileName.value = p.name || '';
+  profileAge.value = p.age || '';
+  profileLocation.value = p.location || '';
+  profileGender.value = p.gender || '';
+  // render children
+  renderChildrenUI();
+  chatManager.userProfile.updateProgressUI && chatManager.userProfile.updateProgressUI();
+  profileModal.classList.add('show');
+}
+
+function closeProfileModal(){ profileModal.classList.remove('show'); }
+
+function renderChildrenUI(){
+  childrenList.innerHTML = '';
+  const kids = chatManager.userProfile.profile.children || [];
+  kids.forEach((kid, idx) => {
+    const row = document.createElement('div');
+    row.style.display = 'flex'; row.style.gap = '8px'; row.style.marginBottom='8px'; row.style.alignItems='center';
+    const name = document.createElement('input'); name.className = 'form-control'; name.value = kid.name || ''; name.placeholder = 'Child name';
+    const age = document.createElement('input'); age.className = 'form-control'; age.type = 'number'; age.value = kid.age || ''; age.placeholder='Age';
+    const btn = document.createElement('button'); btn.className = 'remove-child'; btn.innerHTML = '<i class="fas fa-times"></i>';
+    btn.addEventListener('click', ()=>{ chatManager.userProfile.removeChild(idx); renderChildrenUI(); });
+    name.addEventListener('input', ()=>{ chatManager.userProfile.profile.children[idx].name = name.value; chatManager.userProfile.save(); });
+    age.addEventListener('input', ()=>{ chatManager.userProfile.profile.children[idx].age = age.value; chatManager.userProfile.save(); });
+    row.appendChild(name); row.appendChild(age); row.appendChild(btn);
+    childrenList.appendChild(row);
+  });
+}
+
+function addChildField(){
+  chatManager.userProfile.addChild('', '');
+  renderChildrenUI();
+}
+
+function saveProfile(){
+  const updates = {
+    name: profileName.value.trim(),
+    age: profileAge.value ? Number(profileAge.value) : '',
+    location: profileLocation.value.trim(),
+    gender: profileGender.value
+  };
+  chatManager.userProfile.update(updates);
+  // Feedback in chat
+  const ack = "Profile updated — I'll use this information to personalize advice.";
+  const botMsg = { role:'bot', content: ack, timestamp: new Date().toISOString() };
+  currentMessages.push(botMsg);
+  appendMessage(botMsg);
+  // Save chat
+  chatManager.storage.saveChat(currentSessionId, currentMessages);
+  closeProfileModal();
+}
+
+function exportProfile(){
+  const data = chatManager.userProfile.export();
+  const txt = JSON.stringify(data, null, 2);
+  const blob = new Blob([txt], {type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = 'swasthya_profile.json'; a.click(); URL.revokeObjectURL(url);
+}
+
+/* ========= Summary helpers & extras ========= */
+function scrollToBottom(){ setTimeout(()=> { chatArea.scrollTop = chatArea.scrollHeight; }, 40); }
+
+/* ========= INIT ========= */
+window.addEventListener('DOMContentLoaded', ()=> {
+  init();
+  // Bind a couple more UI events
+  document.querySelectorAll('.quick-btn').forEach(btn => btn.addEventListener('click', ()=> { messageInput.value = btn.dataset.q; sendMessage(); }));
+  // export button
+  exportProfileBtn.addEventListener('click', exportProfile);
+});
+
+// Setup speech recognition button
+speakBtn.addEventListener('click', () => {
+  if (recognition && recognition.recognizing) {
+    recognition.stop();
+  } else {
+    startSpeechRecognition();
+  }
+});
+
+//greatings based on langauge 
+const languageSelected = document.getElementById('languageSelect');
+
+
+</script>
+</body>
+</html>
